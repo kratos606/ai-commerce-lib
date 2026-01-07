@@ -99,6 +99,7 @@ var init_client = __esm({
           throw new Error("AICommerce: apiKey is required");
         }
         this.apiKey = config.apiKey;
+        this.storeId = config.storeId;
         this.baseUrl = this.normalizeUrl(config.baseUrl || this.detectBaseUrl());
         this.timeout = config.timeout || 3e4;
       }
@@ -133,7 +134,8 @@ var init_client = __esm({
             signal: controller.signal,
             headers: {
               "Content-Type": "application/json",
-              "X-API-Key": this.apiKey,
+              "x-api-key": this.apiKey,
+              ...this.storeId && { "x-store-id": this.storeId },
               ...this.sessionToken && { "X-Session-Token": this.sessionToken },
               ...options.headers
             }
@@ -930,6 +932,7 @@ function createWidget(config) {
   }
   const client = new exports.AICommerce({
     apiKey: config.apiKey,
+    storeId: config.storeId,
     baseUrl: config.baseUrl
   });
   const state = {
@@ -971,6 +974,7 @@ function createWidget(config) {
     state.storeConfig = await fetchStoreConfig();
     resolvedConfig = {
       apiKey: config.apiKey,
+      storeId: config.storeId,
       baseUrl: config.baseUrl || detectBaseUrl(),
       position: config.position || "bottom-right",
       theme: config.theme || "auto",

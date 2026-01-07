@@ -5,6 +5,8 @@
 interface AICommerceConfig {
     /** Your API key from the AI Commerce dashboard */
     apiKey: string;
+    /** Your Store ID from the AI Commerce dashboard */
+    storeId?: string;
     /** Base URL for the API (defaults to current origin or https://api.aicommerce.dev) */
     baseUrl?: string;
     /** Request timeout in milliseconds (default: 30000) */
@@ -112,6 +114,8 @@ interface StoreConfig {
 interface WidgetConfig {
     /** Your API key from the AI Commerce dashboard */
     apiKey: string;
+    /** Your Store ID from the AI Commerce dashboard */
+    storeId?: string;
     /** Base URL for the API (defaults to current origin or https://api.aicommerce.dev) */
     baseUrl?: string;
     /** Widget position on screen */
@@ -169,6 +173,7 @@ interface WidgetInstance {
  */
 declare class AICommerce {
     private readonly apiKey;
+    private readonly storeId;
     private readonly baseUrl;
     private readonly timeout;
     private sessionToken;

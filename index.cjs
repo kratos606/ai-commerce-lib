@@ -1159,8 +1159,12 @@ function createWidget(config) {
       card.addEventListener("click", () => {
         const productId = card.getAttribute("data-product-id");
         const product = state.messages.flatMap((m) => m.products || []).find((p) => p.id === productId);
-        if (product && resolvedConfig.onProductClick) {
-          resolvedConfig.onProductClick(product);
+        if (product) {
+          if (resolvedConfig.onProductClick) {
+            resolvedConfig.onProductClick(product);
+          } else if (product.url) {
+            window.open(product.url, "_blank", "noopener,noreferrer");
+          }
         }
       });
     });

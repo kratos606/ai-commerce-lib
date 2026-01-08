@@ -1147,6 +1147,56 @@ function createWidgetStyles(config) {
         padding: 12px;
     }
 }
+
+/* ============================================
+   Add to Cart Button Styles
+   ============================================ */
+
+.aicommerce-add-to-cart {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--aic-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.aicommerce-add-to-cart:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.aicommerce-add-to-cart:active {
+    transform: translateY(0);
+}
+
+.aicommerce-add-to-cart:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.aicommerce-add-to-cart svg {
+    flex-shrink: 0;
+}
+
+/* Spinner animation for loading state */
+@keyframes aicommerce-spin {
+    to { transform: rotate(360deg); }
+}
+
+.aicommerce-spinner {
+    animation: aicommerce-spin 1s linear infinite;
+}
 `;
 }
 function injectStyles(css) {
@@ -1238,6 +1288,7 @@ function createWidget(config) {
       onOpen: config.onOpen,
       onClose: config.onClose,
       onProductClick: config.onProductClick,
+      onAddToCart: config.onAddToCart,
       onMessage: config.onMessage
     };
     const styles = createWidgetStyles(resolvedConfig);
@@ -1274,6 +1325,22 @@ function createWidget(config) {
     }
     state.isLoading = false;
     render();
+  }
+  async function addToShopifyCart(variantId, quantity = 1) {
+    const response = await fetch("/cart/add.js", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: variantId,
+        quantity
+      })
+    });
+    if (!response.ok) {
+      throw new Error("Failed to add to cart");
+    }
+    document.dispatchEvent(new CustomEvent("cart:refresh"));
   }
   function render() {
     if (!container) return;
@@ -1399,7 +1466,7 @@ function createWidget(config) {
                             ${msg.products && msg.products.length > 0 ? `
                                 <div class="aicommerce-products">
                                     ${msg.products.map((product) => `
-                                        <div class="aicommerce-product-card" data-product-id="${product.id}">
+                                        <div class="aicommerce-product-card" data-product-id="${product.id}" data-variant-id="${product.variantId || ""}">
                                             ${product.image || product.imageUrl ? `
                                                 <img src="${product.image || product.imageUrl}" alt="${escapeHtml(product.name)}" class="aicommerce-product-image" />
                                             ` : `
@@ -1409,6 +1476,13 @@ function createWidget(config) {
                                                 <span class="aicommerce-product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</span>
                                                 ${product.description ? `<p class="aicommerce-product-desc">${escapeHtml(product.description)}</p>` : ""}
                                                 <span class="aicommerce-product-price">${formatPrice(product.price, product.currency)}</span>
+                                                <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                                    </svg>
+                                                    Add to Cart
+                                                </button>
                                             </div>
                                         </div>
                                     `).join("")}
@@ -1518,7 +1592,8 @@ function createWidget(config) {
     }
     const productCards = container.querySelectorAll(".aicommerce-product-card");
     productCards.forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".aicommerce-add-to-cart")) return;
         const productId = card.getAttribute("data-product-id");
         const product = state.messages.flatMap((m) => m.products || []).find((p) => p.id === productId);
         if (product) {
@@ -1527,6 +1602,49 @@ function createWidget(config) {
           } else if (product.url) {
             window.open(product.url, "_blank", "noopener,noreferrer");
           }
+        }
+      });
+    });
+    const addToCartBtns = container.querySelectorAll(".aicommerce-add-to-cart");
+    addToCartBtns.forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const button = btn;
+        const productCard = button.closest(".aicommerce-product-card");
+        const productId = productCard?.getAttribute("data-product-id");
+        const variantId = productCard?.getAttribute("data-variant-id");
+        const product = state.messages.flatMap((m) => m.products || []).find((p) => p.id === productId);
+        if (!product) return;
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `
+                    <svg class="aicommerce-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"/>
+                    </svg>
+                    Adding...
+                `;
+        try {
+          if (resolvedConfig.onAddToCart) {
+            await resolvedConfig.onAddToCart(product);
+          } else if (variantId && window.Shopify) {
+            await addToShopifyCart(variantId);
+          } else if (product.url) {
+            window.open(product.url, "_blank", "noopener,noreferrer");
+          }
+          button.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Added!
+                    `;
+          setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+          }, 2e3);
+        } catch (error) {
+          console.error("[AI Commerce] Add to cart failed:", error);
+          button.innerHTML = originalText;
+          button.disabled = false;
         }
       });
     });

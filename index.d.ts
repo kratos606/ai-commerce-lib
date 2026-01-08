@@ -79,6 +79,8 @@ interface Product {
     relevanceScore?: number;
     /** Product URL */
     url?: string;
+    /** Shopify variant ID for add to cart */
+    variantId?: string;
 }
 /** Session information */
 interface Session {
@@ -150,6 +152,8 @@ interface WidgetConfig {
     onClose?: () => void;
     /** Callback when a product is clicked */
     onProductClick?: (product: Product) => void;
+    /** Callback when add to cart button is clicked */
+    onAddToCart?: (product: Product) => void | Promise<void>;
     /** Callback when a message is sent */
     onMessage?: (message: string, response: ChatResponse) => void;
 }

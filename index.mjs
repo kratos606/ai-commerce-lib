@@ -905,18 +905,19 @@ function createWidgetStyles(config) {
    Embedded Mode Styles - ChatGPT Style
    ============================================ */
 
-/* Embedded container - fit content with max height */
+/* Embedded container - constrained height for scrolling */
 #aicommerce-widget.aicommerce-embedded {
     position: relative;
     bottom: auto;
     left: auto;
     right: auto;
     width: 100%;
-    height: auto;
+    height: var(--aic-max-height, 600px);
     max-height: var(--aic-max-height, 600px);
     display: flex;
     flex-direction: column;
     background: transparent;
+    overflow: hidden;
 }
 
 /* Embedded mode: hide launcher button */
@@ -934,11 +935,11 @@ function createWidgetStyles(config) {
     display: none !important;
 }
 
-/* Embedded mode: chat fills container with transparent background */
+/* Embedded mode: chat fills container */
 .aicommerce-embedded .aicommerce-chat {
     position: relative;
     width: 100%;
-    height: auto;
+    height: 100%;
     max-width: 100%;
     border-radius: 0;
     background: transparent;
@@ -948,6 +949,7 @@ function createWidgetStyles(config) {
     pointer-events: auto !important;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 /* Embedded mode: no open/close animations */
@@ -957,13 +959,14 @@ function createWidgetStyles(config) {
     pointer-events: auto !important;
 }
 
-/* Embedded mode: messages area - messages start from bottom, grow upward */
+/* Embedded mode: messages area - scrollable */
 .aicommerce-embedded .aicommerce-messages {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     overflow-y: auto;
-    max-height: calc(var(--aic-max-height, 600px) - 100px);
     padding: 16px;
     max-width: 700px;
     margin: 0 auto;

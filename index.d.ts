@@ -110,6 +110,8 @@ interface StoreConfig {
     chatBotName: string;
     welcomeMessage: string;
 }
+/** Widget display mode */
+type WidgetDisplayMode = 'widget' | 'embedded';
 /** Widget configuration options */
 interface WidgetConfig {
     /** Your API key from the AI Commerce dashboard */
@@ -118,7 +120,13 @@ interface WidgetConfig {
     storeId?: string;
     /** Base URL for the API (defaults to current origin or https://api.aicommerce.dev) */
     baseUrl?: string;
-    /** Widget position on screen */
+    /** Display mode: 'widget' (floating) or 'embedded' (inline container) */
+    displayMode?: WidgetDisplayMode;
+    /** Container element or selector for embedded mode */
+    container?: HTMLElement | string;
+    /** Height of the chat in embedded mode (default: '500px') */
+    height?: string;
+    /** Widget position on screen (only for widget mode) */
     position?: 'bottom-right' | 'bottom-left';
     /** Theme mode */
     theme?: 'light' | 'dark' | 'auto';
@@ -128,7 +136,7 @@ interface WidgetConfig {
     welcomeMessage?: string;
     /** Custom bot name (overrides store setting) */
     botName?: string;
-    /** Z-index for the widget */
+    /** Z-index for the widget (only for widget mode) */
     zIndex?: number;
     /** Custom button text when minimized */
     buttonText?: string;

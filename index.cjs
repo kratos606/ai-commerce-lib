@@ -902,6 +902,62 @@ function createWidgetStyles(config) {
 .aicommerce-messages::-webkit-scrollbar-thumb:hover {
     background: var(--aic-text-secondary);
 }
+
+/* ============================================
+   Embedded Mode Styles
+   ============================================ */
+
+/* Embedded container - position relative, inline flow */
+#aicommerce-widget.aicommerce-embedded {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    height: var(--aic-height, 500px);
+}
+
+/* Embedded mode: hide launcher button */
+.aicommerce-embedded .aicommerce-launcher {
+    display: none !important;
+}
+
+/* Embedded mode: chat is always visible and fills container */
+.aicommerce-embedded .aicommerce-chat {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: var(--aic-radius);
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Embedded mode: no open/close animations */
+.aicommerce-embedded .aicommerce-chat.aicommerce-closed {
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+}
+
+/* Embedded mode: messages area adjusts to container */
+.aicommerce-embedded .aicommerce-messages {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Embedded mode responsive */
+@media (max-width: 420px) {
+    #aicommerce-widget.aicommerce-embedded {
+        height: var(--aic-height, 400px);
+    }
+    
+    .aicommerce-embedded .aicommerce-chat {
+        border-radius: 12px;
+    }
+}
 `;
 }
 function injectStyles(css) {
@@ -972,10 +1028,15 @@ function createWidget(config) {
   }
   async function initialize() {
     state.storeConfig = await fetchStoreConfig();
+    const displayMode = config.displayMode || "widget";
+    const isEmbedded = displayMode === "embedded";
     resolvedConfig = {
       apiKey: config.apiKey,
       storeId: config.storeId,
       baseUrl: config.baseUrl || detectBaseUrl(),
+      displayMode,
+      container: config.container,
+      height: config.height || "500px",
       position: config.position || "bottom-right",
       theme: config.theme || "auto",
       primaryColor: config.primaryColor || state.storeConfig?.primaryColor || "#6366f1",
@@ -991,10 +1052,29 @@ function createWidget(config) {
     };
     const styles = createWidgetStyles(resolvedConfig);
     styleElement = injectStyles(styles);
-    container = document.createElement("div");
-    container.id = "aicommerce-widget";
-    container.className = `aicommerce-widget aicommerce-${resolvedConfig.position} aicommerce-theme-${resolvedConfig.theme}`;
-    document.body.appendChild(container);
+    if (isEmbedded) {
+      let targetContainer = null;
+      if (typeof config.container === "string") {
+        targetContainer = document.querySelector(config.container);
+      } else if (config.container instanceof HTMLElement) {
+        targetContainer = config.container;
+      }
+      if (!targetContainer) {
+        console.error("[AI Commerce] Embedded mode requires a valid container element or selector");
+        return;
+      }
+      container = document.createElement("div");
+      container.id = "aicommerce-widget";
+      container.className = `aicommerce-widget aicommerce-embedded aicommerce-theme-${resolvedConfig.theme}`;
+      container.style.setProperty("--aic-height", resolvedConfig.height);
+      targetContainer.appendChild(container);
+      state.isOpen = true;
+    } else {
+      container = document.createElement("div");
+      container.id = "aicommerce-widget";
+      container.className = `aicommerce-widget aicommerce-${resolvedConfig.position} aicommerce-theme-${resolvedConfig.theme}`;
+      document.body.appendChild(container);
+    }
     render();
     state.messages.push({
       role: "assistant",
@@ -1005,8 +1085,9 @@ function createWidget(config) {
   }
   function render() {
     if (!container) return;
+    const isEmbedded = resolvedConfig.displayMode === "embedded";
     const html = `
-            ${!resolvedConfig.hideLauncher ? `
+            ${!isEmbedded && !resolvedConfig.hideLauncher ? `
                 <button class="aicommerce-launcher ${state.isOpen ? "aicommerce-hidden" : ""}" aria-label="Open chat">
                     <span class="aicommerce-launcher-icon">${resolvedConfig.buttonText}</span>
                 </button>
@@ -1023,7 +1104,7 @@ function createWidget(config) {
                             <span class="aicommerce-status">Online</span>
                         </div>
                     </div>
-                    <button class="aicommerce-close" aria-label="Close chat">\u2715</button>
+                    ${!isEmbedded ? `<button class="aicommerce-close" aria-label="Close chat">\u2715</button>` : ""}
                 </div>
                 
                 <div class="aicommerce-messages">

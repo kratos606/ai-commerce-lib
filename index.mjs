@@ -957,10 +957,11 @@ function createWidgetStyles(config) {
     pointer-events: auto !important;
 }
 
-/* Embedded mode: messages area - column-reverse so messages grow upward from bottom */
+/* Embedded mode: messages area - messages start from bottom, grow upward */
 .aicommerce-embedded .aicommerce-messages {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
+    justify-content: flex-end;
     overflow-y: auto;
     max-height: calc(var(--aic-max-height, 600px) - 100px);
     padding: 16px;
@@ -968,12 +969,6 @@ function createWidgetStyles(config) {
     margin: 0 auto;
     width: 100%;
     background: transparent;
-}
-
-/* Embedded mode: messages wrapper for proper ordering */
-.aicommerce-embedded .aicommerce-messages-inner {
-    display: flex;
-    flex-direction: column;
     gap: 12px;
 }
 

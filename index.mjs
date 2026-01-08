@@ -1088,19 +1088,28 @@ function createWidgetStyles(config) {
     color: var(--aic-text);
 }
 
-/* Embedded mode: product cards styling */
+/* Embedded mode: product cards styling - horizontal scroll like widget mode */
 .aicommerce-embedded .aicommerce-products {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 12px;
     margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    cursor: grab;
+    scrollbar-width: none;
+}
+
+.aicommerce-embedded .aicommerce-products::-webkit-scrollbar {
+    display: none;
 }
 
 .aicommerce-embedded .aicommerce-product-card {
+    flex-shrink: 0;
+    width: 180px;
     background: var(--aic-bg);
     border: 1px solid var(--aic-border);
     border-radius: 12px;
-    max-width: 180px;
 }
 
 /* Embedded mode: typing indicator */
@@ -1326,13 +1335,20 @@ function createWidget(config) {
     render();
   }
   async function addToShopifyCart(variantId, quantity = 1) {
+    let numericVariantId = variantId;
+    if (variantId.includes("gid://")) {
+      const match = variantId.match(/\/(\d+)$/);
+      if (match) {
+        numericVariantId = match[1];
+      }
+    }
     const response = await fetch("/cart/add.js", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        id: variantId,
+        id: numericVariantId,
         quantity
       })
     });

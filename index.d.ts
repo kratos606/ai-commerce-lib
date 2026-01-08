@@ -146,6 +146,8 @@ interface WidgetConfig {
     buttonText?: string;
     /** Hide the launcher button (for custom triggers) */
     hideLauncher?: boolean;
+    /** Custom text for Add to Cart button (default: 'Add to Cart') */
+    addToCartText?: string;
     /** Callback when widget is opened */
     onOpen?: () => void;
     /** Callback when widget is closed */
@@ -343,6 +345,7 @@ interface CreateProductInput {
     isFeatured?: boolean;
     tags?: string;
     externalId?: string;
+    variantId?: string;
     categoryId?: string;
     images?: Array<{
         url: string;
@@ -364,6 +367,7 @@ interface UpdateProductInput {
     isActive?: boolean;
     isFeatured?: boolean;
     tags?: string | null;
+    variantId?: string | null;
     categoryId?: string | null;
 }
 interface ProductResponse {

@@ -112,6 +112,8 @@ interface StoreConfig {
 }
 /** Widget display mode */
 type WidgetDisplayMode = 'widget' | 'embedded';
+/** Embedded mode background type */
+type EmbeddedBackgroundType = 'transparent' | 'color' | 'image';
 /** Widget configuration options */
 interface WidgetConfig {
     /** Your API key from the AI Commerce dashboard */
@@ -124,8 +126,16 @@ interface WidgetConfig {
     displayMode?: WidgetDisplayMode;
     /** Container element or selector for embedded mode */
     container?: HTMLElement | string;
-    /** Height of the chat in embedded mode (default: '500px') */
+    /** Height of the chat in embedded mode (default: '100vh') */
     height?: string;
+    /** Background type for embedded mode: 'transparent', 'color', or 'image' */
+    backgroundType?: EmbeddedBackgroundType;
+    /** Background color for embedded mode (when backgroundType is 'color') */
+    backgroundColor?: string;
+    /** Background image URL for embedded mode (when backgroundType is 'image') */
+    backgroundImage?: string;
+    /** Placeholder text for the input */
+    placeholder?: string;
     /** Widget position on screen (only for widget mode) */
     position?: 'bottom-right' | 'bottom-left';
     /** Theme mode */

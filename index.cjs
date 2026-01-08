@@ -904,17 +904,23 @@ function createWidgetStyles(config) {
 }
 
 /* ============================================
-   Embedded Mode Styles
+   Embedded Mode Styles - ChatGPT Style
    ============================================ */
 
-/* Embedded container - position relative, inline flow */
+/* Embedded container - full height section */
 #aicommerce-widget.aicommerce-embedded {
     position: relative;
     bottom: auto;
     left: auto;
     right: auto;
     width: 100%;
-    height: var(--aic-height, 500px);
+    height: var(--aic-height, 100vh);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--aic-embedded-bg, transparent);
+    background-size: cover;
+    background-position: center;
 }
 
 /* Embedded mode: hide launcher button */
@@ -922,17 +928,31 @@ function createWidgetStyles(config) {
     display: none !important;
 }
 
-/* Embedded mode: chat is always visible and fills container */
+/* Embedded mode: hide the header completely */
+.aicommerce-embedded .aicommerce-header {
+    display: none !important;
+}
+
+/* Embedded mode: hide close button */
+.aicommerce-embedded .aicommerce-close {
+    display: none !important;
+}
+
+/* Embedded mode: chat fills container with transparent background */
 .aicommerce-embedded .aicommerce-chat {
     position: relative;
     width: 100%;
     height: 100%;
     max-width: 100%;
     max-height: 100%;
-    border-radius: var(--aic-radius);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
     transform: none !important;
     opacity: 1 !important;
     pointer-events: auto !important;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Embedded mode: no open/close animations */
@@ -942,20 +962,182 @@ function createWidgetStyles(config) {
     pointer-events: auto !important;
 }
 
-/* Embedded mode: messages area adjusts to container */
+/* Embedded mode: messages area - grows to push input down */
 .aicommerce-embedded .aicommerce-messages {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-y: auto;
+    background: transparent;
+}
+
+/* Embedded mode: messages have different styling */
+.aicommerce-embedded .aicommerce-message {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.aicommerce-embedded .aicommerce-message-content {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.aicommerce-embedded .aicommerce-user .aicommerce-message-content {
+    background: var(--aic-primary);
+    color: white;
+}
+
+/* Embedded mode: input container wrapper */
+.aicommerce-embedded .aicommerce-input-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Embedded mode: input centered when no messages */
+.aicommerce-embedded.aicommerce-no-messages .aicommerce-input-wrapper {
+    flex: 1;
+    justify-content: center;
+    padding-top: 0;
+}
+
+/* Embedded mode: input at bottom when has messages */
+.aicommerce-embedded.aicommerce-has-messages .aicommerce-input-wrapper {
+    flex: 0;
+    justify-content: flex-end;
+    padding-bottom: 40px;
+}
+
+/* Embedded mode: input container styled like ChatGPT */
+.aicommerce-embedded .aicommerce-input-container {
+    width: 100%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border-radius: 28px;
+    padding: 12px 16px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 0 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Embedded mode: input field styling */
+.aicommerce-embedded .aicommerce-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px 4px;
+    font-size: 16px;
+    color: #1e293b;
+    outline: none;
+}
+
+.aicommerce-embedded .aicommerce-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Embedded mode: buttons styling */
+.aicommerce-embedded .aicommerce-mic,
+.aicommerce-embedded .aicommerce-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--aic-primary);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.aicommerce-embedded .aicommerce-mic:hover,
+.aicommerce-embedded .aicommerce-send:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.aicommerce-embedded .aicommerce-mic {
+    background: transparent;
+    color: var(--aic-text-secondary);
+}
+
+.aicommerce-embedded .aicommerce-mic:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--aic-text);
+}
+
+/* Embedded mode: product cards styling */
+.aicommerce-embedded .aicommerce-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+    justify-content: center;
+}
+
+.aicommerce-embedded .aicommerce-product-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 200px;
+}
+
+/* Embedded mode: typing indicator */
+.aicommerce-embedded .aicommerce-typing {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px 24px;
+}
+
+/* Embedded mode: dark theme adjustments */
+.aicommerce-embedded.aicommerce-theme-dark .aicommerce-input-container,
+@media (prefers-color-scheme: dark) {
+    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-input-container {
+        background: rgba(30, 41, 59, 0.85);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-input {
+        color: #f1f5f9;
+    }
+    
+    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-message-content {
+        background: rgba(30, 41, 59, 0.9);
+        color: #f1f5f9;
+    }
+    
+    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-product-card {
+        background: rgba(30, 41, 59, 0.95);
+    }
 }
 
 /* Embedded mode responsive */
-@media (max-width: 420px) {
-    #aicommerce-widget.aicommerce-embedded {
-        height: var(--aic-height, 400px);
+@media (max-width: 640px) {
+    .aicommerce-embedded .aicommerce-input-container {
+        max-width: calc(100% - 32px);
+        border-radius: 24px;
     }
     
-    .aicommerce-embedded .aicommerce-chat {
-        border-radius: 12px;
+    .aicommerce-embedded .aicommerce-messages {
+        padding: 16px;
     }
 }
 `;
@@ -1036,7 +1218,11 @@ function createWidget(config) {
       baseUrl: config.baseUrl || detectBaseUrl(),
       displayMode,
       container: config.container,
-      height: config.height || "500px",
+      height: config.height || (isEmbedded ? "100vh" : "500px"),
+      backgroundType: config.backgroundType || "transparent",
+      backgroundColor: config.backgroundColor || "#1e293b",
+      backgroundImage: config.backgroundImage || "",
+      placeholder: config.placeholder || "Ask me anything about our products...",
       position: config.position || "bottom-right",
       theme: config.theme || "auto",
       primaryColor: config.primaryColor || state.storeConfig?.primaryColor || "#6366f1",
@@ -1065,8 +1251,16 @@ function createWidget(config) {
       }
       container = document.createElement("div");
       container.id = "aicommerce-widget";
-      container.className = `aicommerce-widget aicommerce-embedded aicommerce-theme-${resolvedConfig.theme}`;
+      const hasMessages = state.messages.length > 0;
+      container.className = `aicommerce-widget aicommerce-embedded aicommerce-theme-${resolvedConfig.theme} ${hasMessages ? "aicommerce-has-messages" : "aicommerce-no-messages"}`;
       container.style.setProperty("--aic-height", resolvedConfig.height);
+      if (resolvedConfig.backgroundType === "color") {
+        container.style.setProperty("--aic-embedded-bg", resolvedConfig.backgroundColor);
+      } else if (resolvedConfig.backgroundType === "image" && resolvedConfig.backgroundImage) {
+        container.style.setProperty("--aic-embedded-bg", `url(${resolvedConfig.backgroundImage})`);
+      } else {
+        container.style.setProperty("--aic-embedded-bg", "transparent");
+      }
       targetContainer.appendChild(container);
       state.isOpen = true;
     } else {
@@ -1076,16 +1270,53 @@ function createWidget(config) {
       document.body.appendChild(container);
     }
     render();
-    state.messages.push({
-      role: "assistant",
-      content: resolvedConfig.welcomeMessage
-    });
+    if (!isEmbedded) {
+      state.messages.push({
+        role: "assistant",
+        content: resolvedConfig.welcomeMessage
+      });
+    }
     state.isLoading = false;
     render();
   }
   function render() {
     if (!container) return;
     const isEmbedded = resolvedConfig.displayMode === "embedded";
+    const hasUserMessages = state.messages.some((m) => m.role === "user");
+    if (isEmbedded) {
+      container.classList.remove("aicommerce-no-messages", "aicommerce-has-messages");
+      container.classList.add(hasUserMessages ? "aicommerce-has-messages" : "aicommerce-no-messages");
+    }
+    const placeholder = resolvedConfig.placeholder || "Ask me anything about our products...";
+    const inputContainerHtml = `
+            <div class="aicommerce-input-container">
+                <input 
+                    type="text" 
+                    class="aicommerce-input" 
+                    placeholder="${placeholder}"
+                    ${state.isLoading || state.isRecording ? "disabled" : ""}
+                />
+                <button class="aicommerce-mic ${state.isRecording ? "aicommerce-recording" : ""}" ${state.isLoading ? "disabled" : ""} aria-label="${state.isRecording ? "Stop recording" : "Voice input"}">
+                    ${state.isRecording ? `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="6" width="12" height="12" rx="2"/>
+                        </svg>
+                    ` : `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                    `}
+                </button>
+                <button class="aicommerce-send" ${state.isLoading || state.isRecording ? "disabled" : ""} aria-label="Send message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/>
+                    </svg>
+                </button>
+            </div>
+        `;
     const html = `
             ${!isEmbedded && !resolvedConfig.hideLauncher ? `
                 <button class="aicommerce-launcher ${state.isOpen ? "aicommerce-hidden" : ""}" aria-label="Open chat">
@@ -1094,6 +1325,7 @@ function createWidget(config) {
             ` : ""}
             
             <div class="aicommerce-chat ${state.isOpen ? "aicommerce-open" : "aicommerce-closed"}">
+                ${!isEmbedded ? `
                 <div class="aicommerce-header">
                     <div class="aicommerce-header-info">
                         <div class="aicommerce-avatar">
@@ -1104,9 +1336,11 @@ function createWidget(config) {
                             <span class="aicommerce-status">Online</span>
                         </div>
                     </div>
-                    ${!isEmbedded ? `<button class="aicommerce-close" aria-label="Close chat">\u2715</button>` : ""}
+                    <button class="aicommerce-close" aria-label="Close chat">\u2715</button>
                 </div>
+                ` : ""}
                 
+                ${isEmbedded && hasUserMessages ? `
                 <div class="aicommerce-messages">
                     ${state.messages.map((msg, index) => {
       const isRtl = isArabic(msg.content);
@@ -1145,34 +1379,54 @@ function createWidget(config) {
                         </div>
                     ` : ""}
                 </div>
+                ` : ""}
                 
-                <div class="aicommerce-input-container">
-                    <input 
-                        type="text" 
-                        class="aicommerce-input" 
-                        placeholder="Type your message..."
-                        ${state.isLoading || state.isRecording ? "disabled" : ""}
-                    />
-                    <button class="aicommerce-mic ${state.isRecording ? "aicommerce-recording" : ""}" ${state.isLoading ? "disabled" : ""} aria-label="${state.isRecording ? "Stop recording" : "Voice input"}">
-                        ${state.isRecording ? `
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <rect x="6" y="6" width="12" height="12" rx="2"/>
-                            </svg>
-                        ` : `
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                <line x1="12" y1="19" x2="12" y2="23"/>
-                                <line x1="8" y1="23" x2="16" y2="23"/>
-                            </svg>
-                        `}
-                    </button>
-                    <button class="aicommerce-send" ${state.isLoading || state.isRecording ? "disabled" : ""} aria-label="Send message">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/>
-                        </svg>
-                    </button>
+                ${!isEmbedded ? `
+                <div class="aicommerce-messages">
+                    ${state.messages.map((msg, index) => {
+      const isRtl = isArabic(msg.content);
+      const isUser = msg.role === "user";
+      return `
+                        <div class="aicommerce-message aicommerce-${msg.role}">
+                            <div class="aicommerce-message-content ${isRtl ? "aicommerce-rtl" : "aicommerce-ltr"}">
+                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : escapeHtml(msg.content)}
+                            </div>
+                            ${msg.products && msg.products.length > 0 ? `
+                                <div class="aicommerce-products">
+                                    ${msg.products.map((product) => `
+                                        <div class="aicommerce-product-card" data-product-id="${product.id}">
+                                            ${product.image || product.imageUrl ? `
+                                                <img src="${product.image || product.imageUrl}" alt="${escapeHtml(product.name)}" class="aicommerce-product-image" />
+                                            ` : `
+                                                <div class="aicommerce-product-placeholder">\u{1F4E6}</div>
+                                            `}
+                                            <div class="aicommerce-product-info">
+                                                <span class="aicommerce-product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</span>
+                                                ${product.description ? `<p class="aicommerce-product-desc">${escapeHtml(product.description)}</p>` : ""}
+                                                <span class="aicommerce-product-price">${formatPrice(product.price, product.currency)}</span>
+                                            </div>
+                                        </div>
+                                    `).join("")}
+                                </div>
+                            ` : ""}
+                        </div>
+                    `;
+    }).join("")}
+                    ${state.isLoading ? `
+                        <div class="aicommerce-message aicommerce-assistant">
+                            <div class="aicommerce-typing">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    ` : ""}
                 </div>
+                ` : ""}
+                
+                ${isEmbedded ? `
+                <div class="aicommerce-input-wrapper">
+                    ${inputContainerHtml}
+                </div>
+                ` : inputContainerHtml}
             </div>
         `;
     container.innerHTML = html;

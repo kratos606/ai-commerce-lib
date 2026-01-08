@@ -907,20 +907,18 @@ function createWidgetStyles(config) {
    Embedded Mode Styles - ChatGPT Style
    ============================================ */
 
-/* Embedded container - full height section */
+/* Embedded container - fit content with max height */
 #aicommerce-widget.aicommerce-embedded {
     position: relative;
     bottom: auto;
     left: auto;
     right: auto;
     width: 100%;
-    height: var(--aic-height, 100vh);
-    min-height: 100vh;
+    height: auto;
+    max-height: var(--aic-max-height, 600px);
     display: flex;
     flex-direction: column;
-    background: var(--aic-embedded-bg, transparent);
-    background-size: cover;
-    background-position: center;
+    background: transparent;
 }
 
 /* Embedded mode: hide launcher button */
@@ -942,9 +940,8 @@ function createWidgetStyles(config) {
 .aicommerce-embedded .aicommerce-chat {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: auto;
     max-width: 100%;
-    max-height: 100%;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -962,99 +959,96 @@ function createWidgetStyles(config) {
     pointer-events: auto !important;
 }
 
-/* Embedded mode: messages area - grows to push input down */
+/* Embedded mode: messages area - column-reverse so messages grow upward from bottom */
 .aicommerce-embedded .aicommerce-messages {
-    flex: 1;
-    min-height: 0;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 20px;
-    max-width: 800px;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+    max-height: calc(var(--aic-max-height, 600px) - 100px);
+    padding: 16px;
+    max-width: 700px;
     margin: 0 auto;
     width: 100%;
-    overflow-y: auto;
     background: transparent;
+}
+
+/* Embedded mode: messages wrapper for proper ordering */
+.aicommerce-embedded .aicommerce-messages-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 /* Embedded mode: messages have different styling */
 .aicommerce-embedded .aicommerce-message {
     max-width: 100%;
-    margin-bottom: 1.5rem;
 }
 
 .aicommerce-embedded .aicommerce-message-content {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--aic-bg);
+    border: 1px solid var(--aic-border);
+    border-radius: 12px;
+    padding: 12px 16px;
 }
 
 .aicommerce-embedded .aicommerce-user .aicommerce-message-content {
     background: var(--aic-primary);
     color: white;
+    border-color: var(--aic-primary);
 }
 
-/* Embedded mode: input container wrapper */
+/* Embedded mode: input container wrapper - always at bottom */
 .aicommerce-embedded .aicommerce-input-wrapper {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    transition: all 0.3s ease;
-}
-
-/* Embedded mode: input centered when no messages */
-.aicommerce-embedded.aicommerce-no-messages .aicommerce-input-wrapper {
-    flex: 1;
-    justify-content: center;
-    padding-top: 0;
-}
-
-/* Embedded mode: input at bottom when has messages */
-.aicommerce-embedded.aicommerce-has-messages .aicommerce-input-wrapper {
-    flex: 0;
-    justify-content: flex-end;
-    padding-bottom: 40px;
+    padding: 16px;
+    flex-shrink: 0;
 }
 
 /* Embedded mode: input container styled like ChatGPT */
 .aicommerce-embedded .aicommerce-input-container {
     width: 100%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    border-radius: 28px;
-    padding: 12px 16px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 0 2px rgba(0, 0, 0, 0.05);
+    max-width: 700px;
+    background: var(--aic-bg);
+    border: 1px solid var(--aic-border);
+    border-radius: 24px;
+    padding: 8px 12px;
     display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    align-items: flex-end;
+    gap: 8px;
 }
 
-/* Embedded mode: input field styling */
+/* Embedded mode: textarea field styling - auto-grow */
 .aicommerce-embedded .aicommerce-input {
     flex: 1;
+    min-width: 0;
     border: none;
     background: transparent;
     padding: 8px 4px;
     font-size: 16px;
-    color: #1e293b;
+    font-family: inherit;
+    color: var(--aic-text);
     outline: none;
+    resize: none;
+    min-height: 24px;
+    max-height: 150px;
+    line-height: 1.5;
+    overflow-y: auto;
 }
 
 .aicommerce-embedded .aicommerce-input::placeholder {
-    color: #94a3b8;
+    color: var(--aic-text-secondary);
 }
 
-/* Embedded mode: buttons styling */
+/* Embedded mode: buttons styling - smaller, no overflow */
 .aicommerce-embedded .aicommerce-mic,
 .aicommerce-embedded .aicommerce-send {
-    width: 40px;
-    height: 40px;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
     border-radius: 50%;
     background: var(--aic-primary);
     color: white;
@@ -1068,7 +1062,6 @@ function createWidgetStyles(config) {
 
 .aicommerce-embedded .aicommerce-mic:hover,
 .aicommerce-embedded .aicommerce-send:hover {
-    transform: scale(1.05);
     opacity: 0.9;
 }
 
@@ -1086,58 +1079,57 @@ function createWidgetStyles(config) {
 .aicommerce-embedded .aicommerce-products {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 16px;
-    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
 }
 
 .aicommerce-embedded .aicommerce-product-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    max-width: 200px;
+    background: var(--aic-bg);
+    border: 1px solid var(--aic-border);
+    border-radius: 12px;
+    max-width: 180px;
 }
 
 /* Embedded mode: typing indicator */
 .aicommerce-embedded .aicommerce-typing {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 16px 24px;
+    background: var(--aic-bg);
+    border: 1px solid var(--aic-border);
+    border-radius: 12px;
+    padding: 12px 16px;
 }
 
-/* Embedded mode: dark theme adjustments */
-.aicommerce-embedded.aicommerce-theme-dark .aicommerce-input-container,
-@media (prefers-color-scheme: dark) {
-    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-input-container {
-        background: rgba(30, 41, 59, 0.85);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-input {
-        color: #f1f5f9;
-    }
-    
-    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-message-content {
-        background: rgba(30, 41, 59, 0.9);
-        color: #f1f5f9;
-    }
-    
-    .aicommerce-embedded.aicommerce-theme-auto .aicommerce-product-card {
-        background: rgba(30, 41, 59, 0.95);
-    }
-}
-
-/* Embedded mode responsive */
+/* Embedded mode responsive - mobile fixes */
 @media (max-width: 640px) {
     .aicommerce-embedded .aicommerce-input-container {
-        max-width: calc(100% - 32px);
-        border-radius: 24px;
+        padding: 6px 10px;
+        gap: 6px;
+        border-radius: 20px;
+    }
+    
+    .aicommerce-embedded .aicommerce-mic,
+    .aicommerce-embedded .aicommerce-send {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+    
+    .aicommerce-embedded .aicommerce-mic svg,
+    .aicommerce-embedded .aicommerce-send svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .aicommerce-embedded .aicommerce-input {
+        font-size: 16px;
+        padding: 6px 4px;
     }
     
     .aicommerce-embedded .aicommerce-messages {
-        padding: 16px;
+        padding: 12px;
+    }
+    
+    .aicommerce-embedded .aicommerce-input-wrapper {
+        padding: 12px;
     }
 }
 `;
@@ -1218,10 +1210,7 @@ function createWidget(config) {
       baseUrl: config.baseUrl || detectBaseUrl(),
       displayMode,
       container: config.container,
-      height: config.height || (isEmbedded ? "100vh" : "500px"),
-      backgroundType: config.backgroundType || "transparent",
-      backgroundColor: config.backgroundColor || "#1e293b",
-      backgroundImage: config.backgroundImage || "",
+      maxHeight: config.maxHeight || "600px",
       placeholder: config.placeholder || "Ask me anything about our products...",
       position: config.position || "bottom-right",
       theme: config.theme || "auto",
@@ -1251,16 +1240,8 @@ function createWidget(config) {
       }
       container = document.createElement("div");
       container.id = "aicommerce-widget";
-      const hasMessages = state.messages.length > 0;
-      container.className = `aicommerce-widget aicommerce-embedded aicommerce-theme-${resolvedConfig.theme} ${hasMessages ? "aicommerce-has-messages" : "aicommerce-no-messages"}`;
-      container.style.setProperty("--aic-height", resolvedConfig.height);
-      if (resolvedConfig.backgroundType === "color") {
-        container.style.setProperty("--aic-embedded-bg", resolvedConfig.backgroundColor);
-      } else if (resolvedConfig.backgroundType === "image" && resolvedConfig.backgroundImage) {
-        container.style.setProperty("--aic-embedded-bg", `url(${resolvedConfig.backgroundImage})`);
-      } else {
-        container.style.setProperty("--aic-embedded-bg", "transparent");
-      }
+      container.className = `aicommerce-widget aicommerce-embedded aicommerce-theme-${resolvedConfig.theme}`;
+      container.style.setProperty("--aic-max-height", resolvedConfig.maxHeight);
       targetContainer.appendChild(container);
       state.isOpen = true;
     } else {
@@ -1290,12 +1271,21 @@ function createWidget(config) {
     const placeholder = resolvedConfig.placeholder || "Ask me anything about our products...";
     const inputContainerHtml = `
             <div class="aicommerce-input-container">
+                ${isEmbedded ? `
+                <textarea 
+                    class="aicommerce-input" 
+                    placeholder="${placeholder}"
+                    rows="1"
+                    ${state.isLoading || state.isRecording ? "disabled" : ""}
+                ></textarea>
+                ` : `
                 <input 
                     type="text" 
                     class="aicommerce-input" 
                     placeholder="${placeholder}"
                     ${state.isLoading || state.isRecording ? "disabled" : ""}
                 />
+                `}
                 <button class="aicommerce-mic ${state.isRecording ? "aicommerce-recording" : ""}" ${state.isLoading ? "disabled" : ""} aria-label="${state.isRecording ? "Stop recording" : "Voice input"}">
                     ${state.isRecording ? `
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -1470,18 +1460,40 @@ function createWidget(config) {
     const inputEl = container.querySelector(".aicommerce-input");
     const sendEl = container.querySelector(".aicommerce-send");
     if (inputEl) {
-      inputEl.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && inputEl.value.trim()) {
-          handleSend(inputEl.value.trim());
-          inputEl.value = "";
+      inputEl.addEventListener("keydown", (e) => {
+        const keyEvent = e;
+        if (keyEvent.key === "Enter") {
+          const isTextarea = inputEl instanceof HTMLTextAreaElement;
+          if (isTextarea && keyEvent.shiftKey) {
+            return;
+          }
+          e.preventDefault();
+          const value = inputEl.value.trim();
+          if (value) {
+            handleSend(value);
+            inputEl.value = "";
+            if (isTextarea) {
+              inputEl.style.height = "auto";
+            }
+          }
         }
       });
+      if (inputEl instanceof HTMLTextAreaElement) {
+        inputEl.addEventListener("input", () => {
+          inputEl.style.height = "auto";
+          inputEl.style.height = Math.min(inputEl.scrollHeight, 150) + "px";
+        });
+      }
     }
     if (sendEl && inputEl) {
       sendEl.addEventListener("click", () => {
-        if (inputEl.value.trim()) {
-          handleSend(inputEl.value.trim());
+        const value = inputEl.value.trim();
+        if (value) {
+          handleSend(value);
           inputEl.value = "";
+          if (inputEl instanceof HTMLTextAreaElement) {
+            inputEl.style.height = "auto";
+          }
         }
       });
     }

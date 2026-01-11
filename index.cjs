@@ -269,6 +269,12 @@ var init_client = __esm({
       setSessionToken(token) {
         this.sessionToken = token;
       }
+      /**
+       * Check if the API key is valid
+       */
+      async checkApiKey() {
+        return this.request("/api/v1/api-key/check");
+      }
       // ============================================
       // Upload API
       // ============================================

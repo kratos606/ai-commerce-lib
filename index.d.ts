@@ -112,6 +112,13 @@ interface StoreConfig {
     chatBotName: string;
     welcomeMessage: string;
 }
+interface CheckApiKeyResponse {
+    valid: boolean;
+    storeId?: string;
+    storeName?: string;
+    permissions?: string[];
+    error?: string;
+}
 /** Widget display mode */
 type WidgetDisplayMode = 'widget' | 'embedded';
 /** Widget configuration options */
@@ -265,6 +272,10 @@ declare class AICommerce {
      * Set a session token (for restoring sessions)
      */
     setSessionToken(token: string): void;
+    /**
+     * Check if the API key is valid
+     */
+    checkApiKey(): Promise<CheckApiKeyResponse>;
     /**
      * Products API namespace
      */

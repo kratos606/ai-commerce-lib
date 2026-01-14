@@ -273,6 +273,30 @@ var init_client = __esm({
       async checkApiKey() {
         return this.request("/api/v1/api-key/check");
       }
+      /**
+       * Get conversation history for a session
+       * 
+       * @param options - History options with sessionToken, page, and limit
+       * @returns Paginated messages (newest first)
+       * 
+       * @example
+       * ```typescript
+       * const history = await client.getHistory({
+       *   sessionToken: 'your-session-token',
+       *   page: 1,
+       *   limit: 20
+       * });
+       * console.log(history.messages);
+       * console.log(history.pagination.hasMore);
+       * ```
+       */
+      async getHistory(options) {
+        const params = new URLSearchParams();
+        params.set("sessionToken", options.sessionToken);
+        if (options.page) params.set("page", String(options.page));
+        if (options.limit) params.set("limit", String(options.limit));
+        return this.request(`/api/v1/chat/history?${params.toString()}`);
+      }
       // ============================================
       // Upload API
       // ============================================

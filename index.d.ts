@@ -48,6 +48,8 @@ interface ChatResponse {
     products: Product[];
     /** Session token for follow-up messages */
     sessionToken: string;
+    /** MinIO URL for stored voice message (if audio was sent) */
+    audioUrl?: string;
     /** Suggested follow-up questions */
     suggestions?: string[];
     /** AI confidence score (0-1) */
@@ -97,6 +99,45 @@ interface APIError {
     message: string;
     /** HTTP status code */
     status: number;
+}
+/** Options for retrieving chat history */
+interface HistoryOptions {
+    /** Session token (required) */
+    sessionToken: string;
+    /** Page number (default: 1, returns newest first) */
+    page?: number;
+    /** Messages per page (default: 20, max: 100) */
+    limit?: number;
+}
+/** A message in the chat history */
+interface HistoryMessage {
+    /** Unique message ID */
+    id: string;
+    /** Message role: 'user' or 'assistant' */
+    role: 'user' | 'assistant';
+    /** Text content of the message */
+    content: string;
+    /** MinIO URL for voice messages (null for text) */
+    audioUrl: string | null;
+    /** Array of recommended product IDs (for assistant) */
+    productIds: string[];
+    /** ISO 8601 timestamp */
+    createdAt: string;
+}
+/** Pagination info for history response */
+interface HistoryPagination {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+}
+/** Response from chat history API */
+interface HistoryResponse {
+    /** Array of messages (newest first) */
+    messages: HistoryMessage[];
+    /** Pagination information */
+    pagination: HistoryPagination;
 }
 /** Event types for callbacks */
 type EventType = 'message' | 'products' | 'error' | 'session';
@@ -276,6 +317,24 @@ declare class AICommerce {
      * Check if the API key is valid
      */
     checkApiKey(): Promise<CheckApiKeyResponse>;
+    /**
+     * Get conversation history for a session
+     *
+     * @param options - History options with sessionToken, page, and limit
+     * @returns Paginated messages (newest first)
+     *
+     * @example
+     * ```typescript
+     * const history = await client.getHistory({
+     *   sessionToken: 'your-session-token',
+     *   page: 1,
+     *   limit: 20
+     * });
+     * console.log(history.messages);
+     * console.log(history.pagination.hasMore);
+     * ```
+     */
+    getHistory(options: HistoryOptions): Promise<HistoryResponse>;
     /**
      * Products API namespace
      */
@@ -494,4 +553,4 @@ declare const AICommerceWidget: {
 
 declare const VERSION = "1.0.0";
 
-export { AICommerce, type AICommerceConfig, AICommerceError, AICommerceWidget, type APIError, type ChatContext, type ChatRequest, type ChatResponse, type EventCallback, type EventType, type Product, type Session, type StoreConfig, VERSION, type WidgetConfig, type WidgetInstance, createWidget };
+export { AICommerce, type AICommerceConfig, AICommerceError, AICommerceWidget, type APIError, type ChatContext, type ChatRequest, type ChatResponse, type EventCallback, type EventType, type HistoryMessage, type HistoryOptions, type HistoryPagination, type HistoryResponse, type Product, type Session, type StoreConfig, VERSION, type WidgetConfig, type WidgetInstance, createWidget };

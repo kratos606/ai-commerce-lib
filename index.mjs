@@ -766,7 +766,7 @@ function createWidgetStyles(config) {
 
 .aicommerce-waveform-bars {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 2px;
     height: 32px;
     cursor: pointer;
@@ -779,6 +779,7 @@ function createWidgetStyles(config) {
     min-height: 4px;
     transition: background-color 0.1s;
     flex: 0 0 3px;
+    display: block !important;
 }
 
 .aicommerce-audio-time {
@@ -1365,7 +1366,9 @@ function createWidget(config) {
   const client = new AICommerce({
     apiKey: config.apiKey,
     storeId: config.storeId,
-    baseUrl: config.baseUrl
+    baseUrl: config.baseUrl,
+    timeout: 12e4
+    // 60s timeout for audio processing
   });
   const state = {
     isOpen: false,
@@ -2010,6 +2013,8 @@ function createWidget(config) {
           }
         };
         mediaRecorder.onstop = async () => {
+          state.isRecording = false;
+          render();
           stream.getTracks().forEach((track) => track.stop());
           try {
             if (audioChunks.length > 0) {
@@ -2018,9 +2023,6 @@ function createWidget(config) {
             }
           } catch (error) {
             console.error("Failed to process audio:", error);
-          } finally {
-            state.isRecording = false;
-            render();
           }
         };
         mediaRecorder.start();

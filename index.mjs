@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import WaveSurfer from 'wavesurfer.js';
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1234,6 +1235,7 @@ function createWidgetStyles(config) {
 
 .aicommerce-product-actions {
     display: flex;
+    flex-direction: column;
     gap: 8px;
     margin-top: 8px;
 }
@@ -1244,7 +1246,7 @@ function createWidgetStyles(config) {
 }
 
 .aicommerce-buy-now {
-    flex: 1;
+    width: 100%;
     padding: 8px 12px;
     background: transparent;
     color: var(--aic-primary);
@@ -1369,8 +1371,7 @@ function createWidget(config) {
     isOpen: false,
     isLoading: true,
     isRecording: false,
-    messages: [],
-    storeConfig: null
+    messages: []
   };
   let mediaRecorder = null;
   let audioChunks = [];
@@ -1401,7 +1402,7 @@ function createWidget(config) {
     return "https://api.aicommerce.dev";
   }
   async function initialize() {
-    state.storeConfig = await fetchStoreConfig();
+    state.storeConfig = await fetchStoreConfig() || void 0;
     const displayMode = config.displayMode || "widget";
     const isEmbedded = displayMode === "embedded";
     resolvedConfig = {
@@ -1495,6 +1496,39 @@ function createWidget(config) {
     fetch("/cart.js").then((res) => res.json()).then((cart) => {
       document.dispatchEvent(new CustomEvent("cart:build", { detail: { cart } }));
       document.dispatchEvent(new CustomEvent("ajaxCart.afterCartLoad", { detail: { cart } }));
+      const count = cart.item_count;
+      const selectors = [
+        ".cart-count",
+        "#cart-count",
+        ".site-header__cart-count",
+        "[data-cart-count]",
+        ".cart-count-bubble",
+        ".header__cart-count",
+        ".header-cart__count"
+      ];
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          el.textContent = count.toString();
+          el.classList.remove("hide", "hidden");
+        });
+      });
+      const cartIconBubble = document.getElementById("cart-icon-bubble");
+      if (cartIconBubble) {
+        let countBubble = cartIconBubble.querySelector(".cart-count-bubble");
+        if (count > 0) {
+          if (!countBubble) {
+            countBubble = document.createElement("div");
+            countBubble.className = "cart-count-bubble";
+            countBubble.innerHTML = `<span aria-hidden="true">${count}</span><span class="visually-hidden">${count} item</span>`;
+            cartIconBubble.appendChild(countBubble);
+          } else {
+            countBubble.innerHTML = `<span aria-hidden="true">${count}</span><span class="visually-hidden">${count} item</span>`;
+            countBubble.classList.remove("hidden", "hide");
+          }
+        } else if (countBubble) {
+          countBubble.classList.add("hidden");
+        }
+      }
     }).catch(() => {
     });
   }
@@ -1582,11 +1616,11 @@ function createWidget(config) {
                 <div class="aicommerce-messages">
                     ${state.messages.map((msg, index) => {
       const isRtl = isArabic(msg.content);
-      const isUser = msg.role === "user";
+      msg.role === "user";
       return `
                         <div class="aicommerce-message aicommerce-${msg.role}">
                             <div class="aicommerce-message-content ${isRtl ? "aicommerce-rtl" : "aicommerce-ltr"}">
-                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : marked.parse(msg.content)}
+                                ${msg.audioUrl ? renderAudioPlayer(msg, index) : marked.parse(msg.content)}
                             </div>
                             ${msg.products && msg.products.length > 0 ? `
                                 <div class="aicommerce-products">
@@ -1635,11 +1669,11 @@ function createWidget(config) {
                 <div class="aicommerce-messages">
                     ${state.messages.map((msg, index) => {
       const isRtl = isArabic(msg.content);
-      const isUser = msg.role === "user";
+      msg.role === "user";
       return `
                         <div class="aicommerce-message aicommerce-${msg.role}">
                             <div class="aicommerce-message-content ${isRtl ? "aicommerce-rtl" : "aicommerce-ltr"}">
-                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : marked.parse(msg.content)}
+                                ${msg.audioUrl ? renderAudioPlayer(msg, index) : marked.parse(msg.content)}
                             </div>
                             ${msg.products && msg.products.length > 0 ? `
                                 <div class="aicommerce-products">
@@ -1692,25 +1726,64 @@ function createWidget(config) {
     if (messagesEl) {
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
+    initAudioPlayers();
+  }
+  function initAudioPlayers() {
+    if (state.activeWaveSurfers) {
+      state.activeWaveSurfers.forEach((ws) => ws.destroy());
+    }
+    state.activeWaveSurfers = /* @__PURE__ */ new Map();
+    state.messages.forEach((msg, index) => {
+      if (!msg.audioUrl) return;
+      const containerId = `#aicommerce-waveform-${index}`;
+      const containerEl = document.querySelector(containerId);
+      if (!containerEl) return;
+      const isUser = msg.role === "user";
+      try {
+        const wavesurfer = WaveSurfer.create({
+          container: containerEl,
+          waveColor: isUser ? "rgba(255,255,255,0.4)" : "rgba(99,102,241,0.3)",
+          progressColor: isUser ? "#fff" : "rgba(99,102,241,0.8)",
+          cursorColor: "transparent",
+          barWidth: 2,
+          barRadius: 3,
+          cursorWidth: 1,
+          height: 24,
+          barGap: 2,
+          url: msg.audioUrl
+        });
+        const playBtn = document.querySelector(`#aicommerce-play-${index}`);
+        wavesurfer.on("finish", () => {
+          if (playBtn) {
+            playBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+          }
+        });
+        if (playBtn) {
+          playBtn.addEventListener("click", () => {
+            wavesurfer.playPause();
+            const isPlaying = wavesurfer.isPlaying();
+            playBtn.innerHTML = isPlaying ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>` : `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+          });
+        }
+        state.activeWaveSurfers?.set(`msg-${index}`, wavesurfer);
+      } catch (e) {
+        console.error("Failed to init WaveSurfer", e);
+      }
+    });
   }
   function renderAudioPlayer(msg, index, isUser) {
     return `
             <div class="aicommerce-audio-player" data-message-index="${index}">
-                <button class="aicommerce-audio-btn">
+                <button class="aicommerce-audio-btn" id="aicommerce-play-${index}">
                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 </button>
                 <div class="aicommerce-audio-waveform">
-                    <div class="aicommerce-waveform-bars">
-                        ${(msg.waveformBars || Array(40).fill(10)).map((height) => `
-                            <div class="aicommerce-waveform-bar" style="height: ${height}%; background-color: ${isUser ? "rgba(255,255,255,0.4)" : "rgba(99,102,241,0.3)"}"></div>
-                        `).join("")}
-                    </div>
+                    <div id="aicommerce-waveform-${index}" class="aicommerce-waveform-container" style="width: 100%; min-width: 100px; display: block !important;"></div>
                     <div class="aicommerce-audio-time">
-                        <span class="aicommerce-current-time">0:00</span>
+                        <span class="aicommerce-current-time"></span>
                         <span>${formatTime(msg.audioDuration || 0)}</span>
                     </div>
                 </div>
-                <audio src="${msg.audioUrl}" preload="metadata"></audio>
             </div>
         `;
   }
@@ -1938,12 +2011,17 @@ function createWidget(config) {
         };
         mediaRecorder.onstop = async () => {
           stream.getTracks().forEach((track) => track.stop());
-          if (audioChunks.length > 0) {
-            const audioBlob = new Blob(audioChunks, { type: mimeType });
-            await handleAudioSend(audioBlob);
+          try {
+            if (audioChunks.length > 0) {
+              const audioBlob = new Blob(audioChunks, { type: mimeType });
+              await handleAudioSend(audioBlob);
+            }
+          } catch (error) {
+            console.error("Failed to process audio:", error);
+          } finally {
+            state.isRecording = false;
+            render();
           }
-          state.isRecording = false;
-          render();
         };
         mediaRecorder.start();
         state.isRecording = true;
@@ -1960,10 +2038,8 @@ function createWidget(config) {
   }
   async function handleAudioSend(audioBlob) {
     const audioUrl = URL.createObjectURL(audioBlob);
-    let waveformBars = Array(40).fill(10);
     let audioDuration = 0;
     try {
-      waveformBars = await analyzeAudio(audioBlob);
       const audio = new Audio(audioUrl);
       await new Promise((resolve) => {
         audio.onloadedmetadata = () => {
@@ -1973,14 +2049,13 @@ function createWidget(config) {
         audio.onerror = () => resolve();
       });
     } catch (e) {
-      console.error("Audio analysis failed", e);
+      console.error("Audio duration check failed", e);
     }
     state.messages.push({
       role: "user",
       content: "Voice message",
       audioUrl,
-      audioDuration,
-      waveformBars
+      audioDuration
     });
     state.isLoading = true;
     render();
@@ -2013,32 +2088,6 @@ function createWidget(config) {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  }
-  async function analyzeAudio(blob) {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const arrayBuffer = await blob.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      const channelData = audioBuffer.getChannelData(0);
-      const bars = 40;
-      const step = Math.floor(channelData.length / bars);
-      const calculatedBars = [];
-      for (let i = 0; i < bars; i++) {
-        const start = i * step;
-        const end = start + step;
-        let sum = 0;
-        for (let j = start; j < end; j++) {
-          if (channelData[j]) sum += channelData[j] * channelData[j];
-        }
-        const rms = Math.sqrt(sum / step);
-        const height = Math.min(100, Math.max(10, rms * 400));
-        calculatedBars.push(height);
-      }
-      return calculatedBars;
-    } catch (e) {
-      console.error("Analysis error", e);
-      return Array.from({ length: 40 }, () => 20 + Math.random() * 60);
-    }
   }
   async function handleSend(message) {
     state.messages.push({ role: "user", content: message });

@@ -1,3 +1,5 @@
+import { marked } from 'marked';
+
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -763,9 +765,9 @@ function createWidgetStyles(config) {
 
 .aicommerce-waveform-bars {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 2px;
-    height: 24px;
+    height: 32px;
     cursor: pointer;
     width: 100%;
 }
@@ -773,9 +775,9 @@ function createWidgetStyles(config) {
 .aicommerce-waveform-bar {
     width: 3px;
     border-radius: 2px;
-    min-height: 3px;
+    min-height: 4px;
     transition: background-color 0.1s;
-    flex-shrink: 0;
+    flex: 0 0 3px;
 }
 
 .aicommerce-audio-time {
@@ -1230,6 +1232,41 @@ function createWidgetStyles(config) {
     flex-shrink: 0;
 }
 
+.aicommerce-product-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.aicommerce-product-actions .aicommerce-add-to-cart {
+    margin-top: 0;
+    flex: 1;
+}
+
+.aicommerce-buy-now {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    color: var(--aic-primary);
+    border: 1px solid var(--aic-primary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aicommerce-buy-now:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.aicommerce-buy-now:active {
+    transform: translateY(1px);
+}
+
 /* Spinner animation for loading state */
 @keyframes aicommerce-spin {
     to { transform: rotate(360deg); }
@@ -1237,6 +1274,63 @@ function createWidgetStyles(config) {
 
 .aicommerce-spinner {
     animation: aicommerce-spin 1s linear infinite;
+}
+
+/* ============================================
+   Markdown Content Styles
+   ============================================ */
+.aicommerce-message-content p {
+    margin: 0 0 0.5em 0;
+}
+.aicommerce-message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.aicommerce-message-content strong {
+    font-weight: 600;
+}
+
+.aicommerce-message-content em {
+    font-style: italic;
+}
+
+.aicommerce-message-content a {
+    text-decoration: underline;
+    color: inherit;
+}
+.aicommerce-user .aicommerce-message-content a {
+    color: rgba(255, 255, 255, 0.95);
+}
+.aicommerce-assistant .aicommerce-message-content a {
+    color: var(--aic-primary);
+}
+
+.aicommerce-message-content code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+.aicommerce-user .aicommerce-message-content code {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.aicommerce-message-content ul,
+.aicommerce-message-content ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.aicommerce-message-content li {
+    margin-bottom: 0.25em;
+}
+
+.aicommerce-message-content blockquote {
+    border-left: 3px solid var(--aic-primary);
+    margin: 0.5em 0;
+    padding-left: 1em;
+    opacity: 0.9;
 }
 `;
 }
@@ -1390,6 +1484,29 @@ function createWidget(config) {
       throw new Error("Failed to add to cart");
     }
     document.dispatchEvent(new CustomEvent("cart:refresh"));
+    document.dispatchEvent(new CustomEvent("cart:change"));
+    document.dispatchEvent(new CustomEvent("cart:add"));
+    document.dispatchEvent(new CustomEvent("cart:updated"));
+    document.dispatchEvent(new CustomEvent("CartJS:change"));
+    const win = window;
+    if (win.Shopify && win.Shopify.onCartUpdate) {
+      win.Shopify.onCartUpdate();
+    }
+    fetch("/cart.js").then((res) => res.json()).then((cart) => {
+      document.dispatchEvent(new CustomEvent("cart:build", { detail: { cart } }));
+      document.dispatchEvent(new CustomEvent("ajaxCart.afterCartLoad", { detail: { cart } }));
+    }).catch(() => {
+    });
+  }
+  function handleBuyNow(variantId) {
+    let numericVariantId = variantId;
+    if (variantId.includes("gid://")) {
+      const match = variantId.match(/\/(\d+)$/);
+      if (match) {
+        numericVariantId = match[1];
+      }
+    }
+    window.location.href = `/cart/${numericVariantId}:1`;
   }
   function render() {
     if (!container) return;
@@ -1469,7 +1586,7 @@ function createWidget(config) {
       return `
                         <div class="aicommerce-message aicommerce-${msg.role}">
                             <div class="aicommerce-message-content ${isRtl ? "aicommerce-rtl" : "aicommerce-ltr"}">
-                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : escapeHtml(msg.content)}
+                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : marked.parse(msg.content)}
                             </div>
                             ${msg.products && msg.products.length > 0 ? `
                                 <div class="aicommerce-products">
@@ -1484,13 +1601,18 @@ function createWidget(config) {
                                                 <span class="aicommerce-product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</span>
                                                 ${product.description ? `<p class="aicommerce-product-desc">${escapeHtml(product.description)}</p>` : ""}
                                                 <span class="aicommerce-product-price">${formatPrice(product.price, product.currency)}</span>
-                                                <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                                    </svg>
-                                                    ${resolvedConfig.addToCartText || "Add to Cart"}
-                                                </button>
+                                                <div class="aicommerce-product-actions">
+                                                    <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                                        </svg>
+                                                        ${resolvedConfig.addToCartText || "Add to Cart"}
+                                                    </button>
+                                                    <button class="aicommerce-buy-now" data-variant-id="${product.variantId || ""}">
+                                                        Buy Now
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     `).join("")}
@@ -1517,7 +1639,7 @@ function createWidget(config) {
       return `
                         <div class="aicommerce-message aicommerce-${msg.role}">
                             <div class="aicommerce-message-content ${isRtl ? "aicommerce-rtl" : "aicommerce-ltr"}">
-                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : escapeHtml(msg.content)}
+                                ${msg.audioUrl ? renderAudioPlayer(msg, index, isUser) : marked.parse(msg.content)}
                             </div>
                             ${msg.products && msg.products.length > 0 ? `
                                 <div class="aicommerce-products">
@@ -1704,6 +1826,16 @@ function createWidget(config) {
         }
       });
     });
+    const buyNowBtns = container.querySelectorAll(".aicommerce-buy-now");
+    buyNowBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const variantId = btn.getAttribute("data-variant-id");
+        if (variantId) {
+          handleBuyNow(variantId);
+        }
+      });
+    });
     const sliders = container.querySelectorAll(".aicommerce-products");
     sliders.forEach((slider) => {
       let isDown = false;
@@ -1795,8 +1927,9 @@ function createWidget(config) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioChunks = [];
+        const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
         mediaRecorder = new MediaRecorder(stream, {
-          mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4"
+          mimeType
         });
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
@@ -1806,7 +1939,7 @@ function createWidget(config) {
         mediaRecorder.onstop = async () => {
           stream.getTracks().forEach((track) => track.stop());
           if (audioChunks.length > 0) {
-            const audioBlob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
+            const audioBlob = new Blob(audioChunks, { type: mimeType });
             await handleAudioSend(audioBlob);
           }
           state.isRecording = false;
@@ -2008,6 +2141,12 @@ var init_widget = __esm({
   "src/widget.ts"() {
     init_client();
     init_widget_styles();
+    marked.setOptions({
+      breaks: true,
+      // Convert \n to <br>
+      gfm: true
+      // GitHub Flavored Markdown
+    });
     AICommerceWidget = {
       init: createWidget,
       VERSION: "1.0.0"

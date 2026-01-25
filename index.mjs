@@ -1428,6 +1428,9 @@ function createWidget(config) {
       onClose: config.onClose,
       onProductClick: config.onProductClick,
       onAddToCart: config.onAddToCart,
+      showAddToCart: config.showAddToCart,
+      onBuyNow: config.onBuyNow,
+      showBuyNow: config.showBuyNow,
       onMessage: config.onMessage
     };
     const styles = createWidgetStyles(resolvedConfig);
@@ -1638,6 +1641,7 @@ function createWidget(config) {
                                                 ${product.description ? `<p class="aicommerce-product-desc">${escapeHtml(product.description)}</p>` : ""}
                                                 <span class="aicommerce-product-price">${formatPrice(product.price, product.currency)}</span>
                                                 <div class="aicommerce-product-actions">
+                                                    ${resolvedConfig.showAddToCart !== false ? `
                                                     <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -1645,9 +1649,12 @@ function createWidget(config) {
                                                         </svg>
                                                         ${resolvedConfig.addToCartText || "Add to Cart"}
                                                     </button>
+                                                    ` : ""}
+                                                    ${resolvedConfig.showBuyNow !== false ? `
                                                     <button class="aicommerce-buy-now" data-variant-id="${product.variantId || ""}">
                                                         Buy Now
                                                     </button>
+                                                    ` : ""}
                                                 </div>
                                             </div>
                                         </div>
@@ -1690,13 +1697,22 @@ function createWidget(config) {
                                                 <span class="aicommerce-product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</span>
                                                 ${product.description ? `<p class="aicommerce-product-desc">${escapeHtml(product.description)}</p>` : ""}
                                                 <span class="aicommerce-product-price">${formatPrice(product.price, product.currency)}</span>
-                                                <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                                    </svg>
-                                                    ${resolvedConfig.addToCartText || "Add to Cart"}
-                                                </button>
+                                                <div class="aicommerce-product-actions">
+                                                    ${resolvedConfig.showAddToCart !== false ? `
+                                                    <button class="aicommerce-add-to-cart" data-product-id="${product.id}">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                                        </svg>
+                                                        ${resolvedConfig.addToCartText || "Add to Cart"}
+                                                    </button>
+                                                    ` : ""}
+                                                    ${resolvedConfig.showBuyNow !== false ? `
+                                                    <button class="aicommerce-buy-now" data-variant-id="${product.variantId || ""}">
+                                                        Buy Now
+                                                    </button>
+                                                    ` : ""}
+                                                </div>
                                             </div>
                                         </div>
                                     `).join("")}
@@ -1864,10 +1880,15 @@ function createWidget(config) {
     });
     const buyNowBtns = container.querySelectorAll(".aicommerce-buy-now");
     buyNowBtns.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
+        const productCard = btn.closest(".aicommerce-product-card");
+        const productId = productCard?.getAttribute("data-product-id");
         const variantId = btn.getAttribute("data-variant-id");
-        if (variantId) {
+        const product = state.messages.flatMap((m) => m.products || []).find((p) => p.id === productId);
+        if (product && resolvedConfig.onBuyNow) {
+          await resolvedConfig.onBuyNow(product);
+        } else if (variantId) {
           handleBuyNow(variantId);
         }
       });

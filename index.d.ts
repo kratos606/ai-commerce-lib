@@ -204,6 +204,12 @@ interface WidgetConfig {
     onProductClick?: (product: Product) => void;
     /** Callback when add to cart button is clicked */
     onAddToCart?: (product: Product) => void | Promise<void>;
+    /** Whether to show the Add to Cart button (default: true) */
+    showAddToCart?: boolean;
+    /** Callback when buy now button is clicked */
+    onBuyNow?: (product: Product) => void | Promise<void>;
+    /** Whether to show the Buy Now button (default: true) */
+    showBuyNow?: boolean;
     /** Callback when a message is sent */
     onMessage?: (message: string, response: ChatResponse) => void;
 }

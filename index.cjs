@@ -629,6 +629,42 @@ function createWidgetStyles(config) {
     40% { transform: scale(1); }
 }
 
+/* Predefined Questions */
+.aicommerce-predefined-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0;
+    animation: aic-slide-in 0.3s ease-out;
+}
+
+.aicommerce-question-btn {
+    background: var(--aic-bg);
+    border: 1px solid var(--aic-primary);
+    color: var(--aic-primary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.aicommerce-question-btn:hover {
+    background: var(--aic-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(var(--aic-primary-rgb), 0.3);
+}
+
+.aicommerce-question-btn:active {
+    transform: translateY(0);
+}
+
 /* Product Cards */
 .aicommerce-products {
     display: flex;
@@ -712,6 +748,67 @@ function createWidgetStyles(config) {
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-top: 4px;
+}
+
+/* Product Action Buttons */
+.aicommerce-product-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.aicommerce-add-to-cart,
+.aicommerce-buy-now {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.aicommerce-add-to-cart {
+    background: var(--aic-primary);
+    color: white;
+}
+
+.aicommerce-add-to-cart:hover {
+    background: var(--aic-primary-dark);
+    transform: translateY(-1px);
+}
+
+.aicommerce-buy-now {
+    background: transparent;
+    border: 1px solid var(--aic-primary);
+    color: var(--aic-primary);
+}
+
+.aicommerce-buy-now:hover {
+    background: var(--aic-primary);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.aicommerce-add-to-cart:disabled,
+.aicommerce-buy-now:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.aicommerce-spinner {
+    animation: aic-spin 1s linear infinite;
+}
+
+@keyframes aic-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* Audio Player */
@@ -1723,6 +1820,15 @@ function createWidget(config) {
                         </div>
                     `;
     }).join("")}
+                    ${!hasUserMessages && state.storeConfig?.predefinedQuestions?.length ? `
+                        <div class="aicommerce-predefined-questions">
+                            ${state.storeConfig.predefinedQuestions.map((question) => `
+                                <button class="aicommerce-question-btn" data-question="${escapeHtml(question)}">
+                                    ${escapeHtml(question)}
+                                </button>
+                            `).join("")}
+                        </div>
+                    ` : ""}
                     ${state.isLoading ? `
                         <div class="aicommerce-message aicommerce-assistant">
                             <div class="aicommerce-typing">
@@ -1892,6 +1998,15 @@ function createWidget(config) {
           await resolvedConfig.onBuyNow(product);
         } else if (variantId) {
           handleBuyNow(variantId);
+        }
+      });
+    });
+    const questionBtns = container.querySelectorAll(".aicommerce-question-btn");
+    questionBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const question = btn.getAttribute("data-question");
+        if (question) {
+          handleSend(question);
         }
       });
     });

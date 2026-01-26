@@ -152,6 +152,8 @@ interface StoreConfig {
     primaryColor: string;
     chatBotName: string;
     welcomeMessage: string;
+    /** Predefined quick-action questions for the chat widget */
+    predefinedQuestions?: string[];
 }
 interface CheckApiKeyResponse {
     valid: boolean;

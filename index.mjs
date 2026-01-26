@@ -809,6 +809,37 @@ function createWidgetStyles(config) {
     to { transform: rotate(360deg); }
 }
 
+/* Predefined Questions */
+.aicommerce-predefined-questions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-top: 8px;
+}
+
+.aicommerce-question-btn {
+    background: var(--aic-bg-secondary);
+    border: 1px solid var(--aic-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--aic-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: right;
+    max-width: 85%;
+    word-wrap: break-word;
+}
+
+.aicommerce-question-btn:hover {
+    background: var(--aic-primary);
+    color: white;
+    border-color: var(--aic-primary);
+    transform: translateX(-2px);
+}
+
 /* Audio Player */
 .aicommerce-audio-player {
     display: flex;
@@ -1818,15 +1849,18 @@ function createWidget(config) {
                         </div>
                     `;
     }).join("")}
-                    ${!hasUserMessages && state.storeConfig?.predefinedQuestions?.length ? `
+                    ${(() => {
+      const questions = config.predefinedQuestions || state.storeConfig?.predefinedQuestions;
+      return !hasUserMessages && questions?.length ? `
                         <div class="aicommerce-predefined-questions">
-                            ${state.storeConfig.predefinedQuestions.map((question) => `
+                            ${questions.map((question) => `
                                 <button class="aicommerce-question-btn" data-question="${escapeHtml(question)}">
                                     ${escapeHtml(question)}
                                 </button>
                             `).join("")}
                         </div>
-                    ` : ""}
+                    ` : "";
+    })()}
                     ${state.isLoading ? `
                         <div class="aicommerce-message aicommerce-assistant">
                             <div class="aicommerce-typing">

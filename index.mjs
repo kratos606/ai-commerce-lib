@@ -565,7 +565,6 @@ function createWidgetStyles(config) {
 }
 
 .aicommerce-message {
-    max-width: 85%;
     animation: aic-slide-in 0.3s ease-out;
 }
 
@@ -575,12 +574,14 @@ function createWidgetStyles(config) {
 
 .aicommerce-message.aicommerce-assistant {
     align-self: flex-start;
+    width:100%;
 }
 
 .aicommerce-message-content {
     padding: 12px 16px;
     border-radius: 16px;
     line-height: 1.5;
+    max-width: 85%;
 }
 
 .aicommerce-user .aicommerce-message-content {

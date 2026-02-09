@@ -814,31 +814,49 @@ function createWidgetStyles(config) {
 .aicommerce-predefined-questions {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-end; /* Keep them on the right side generally, or left if desired? User request says text-left but didn't specify alignment of container. Let's assume standard bot flow where user options are often on the right or center. But the user style says 'text-left', suggesting the text inside the button. The button itself is 80% width. */
+    /* User requested: w-[80%] */
+    width: 100%;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 8px 16px; /* px-3 py-1.5 is roughly 12px 6px, checking user request */
     margin-top: 8px;
 }
 
 .aicommerce-question-btn {
-    background: var(--aic-bg-secondary);
-    border: 1px solid var(--aic-border);
+    /* User: w-[80%] */
+    width: 80%;
+    /* User: bg-gray-50 -> #f9fafb (closest match or use variable) */
+    background: #f9fafb;
+    /* User: text-[length:--chat-font-size] -> assume inherit or 14px */
+    font-size: 14px;
+    /* User: font-medium -> 500 */
+    font-weight: 500;
+    /* User: text-[--chat-link-color] -> likely primary color */
+    color: var(--aic-primary); 
+    /* User: ring-1 ring-gray-200 -> border essentially */
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 0 0 1px #e5e7eb inset; /* Ring simulation or just border */
+    /* User: rounded-xl -> 12px */
     border-radius: 12px;
-    padding: 10px 16px;
-    font-size: 13px;
-    color: var(--aic-text);
+    /* User: text-left */
+    text-align: left;
+    /* User: px-3 py-1.5 -> 12px 6px */
+    padding: 6px 12px;
+    /* User: transition-all duration-200 */
+    transition: all 0.2s;
+    
     cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: right;
-    max-width: 85%;
-    word-wrap: break-word;
+    margin-left: auto; /* Push to right if we want them aligned right like user messages often are, or left? User said "w-[80%]", usually implies a block. Let's stick to the container's align-items: flex-end for now as it looks like prompt suggestions. */
 }
 
 .aicommerce-question-btn:hover {
-    background: var(--aic-primary);
-    color: white;
-    border-color: var(--aic-primary);
-    transform: translateX(-2px);
+    /* User: hover:bg-gray-100 -> #f3f4f6 */
+    background: #f3f4f6;
+    /* No color change on hover specified in "hover:bg-gray-100", but previously we had primary. User code: dark:bg-gray-800 ... */
+    /* User didn't specify text color change on hover, so keep it */
+    color: var(--aic-primary);
+    transform: none; /* User code doesn't show transform */
+    box-shadow: 0 0 0 1px #e5e7eb inset;
 }
 
 /* Audio Player */
@@ -1851,7 +1869,10 @@ function createWidget(config) {
                     `;
     }).join("")}
                     ${(() => {
-      const questions = config.predefinedQuestions || state.storeConfig?.predefinedQuestions;
+      let questions = config.predefinedQuestions || state.storeConfig?.predefinedQuestions;
+      if (!Array.isArray(questions)) {
+        questions = [];
+      }
       return !hasUserMessages && questions?.length ? `
                         <div class="aicommerce-predefined-questions">
                             ${questions.map((question) => `

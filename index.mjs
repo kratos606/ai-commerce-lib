@@ -386,6 +386,8 @@ function createWidgetStyles(config) {
   const isLeft = config.position === "bottom-left";
   return `
 /* AI Commerce Widget Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 #aicommerce-widget {
     --aic-primary: ${primary};
     --aic-primary-rgb: ${rgb.r}, ${rgb.g}, ${rgb.b};
@@ -400,7 +402,7 @@ function createWidgetStyles(config) {
     --aic-radius: 16px;
     --aic-z-index: ${config.zIndex};
     
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     font-size: 14px;
     line-height: 1.5;
     position: fixed;
@@ -841,7 +843,7 @@ function createWidgetStyles(config) {
     /* User: text-left */
     text-align: left;
     /* User: px-3 py-1.5 -> 12px 6px */
-    padding: 6px 12px;
+    padding: 12px 12px;
     /* User: transition-all duration-200 */
     transition: all 0.2s;
     
